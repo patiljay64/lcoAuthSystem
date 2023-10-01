@@ -34,6 +34,7 @@ app.post("/register", async (req, res) => {
         // password encryption
         const myEncPassword = await bcrypt.hash(password, 10);
 
+        // user creation
         const user = await User.create({
             firstname,
             lastname,
@@ -41,17 +42,18 @@ app.post("/register", async (req, res) => {
             password: myEncPassword
         });
 
+        // token 
         const token = await jwt.sign(
-            { user_id: user._id, email },
-            process.env.SECRET_KEY,
-            {
-                expiresIn: "2h"
-            }
+            { user_id: user._id, email }, process.env.SECRET_KEY, { expiresIn: "2h" }
         );
-        
+
         user.token = token;
+
+
+        // sending all data password must not be send in JSON
         user.password = undefined;
-        // update or not
+
+        // just to view what data is generated 
         return res.status(201).json(user);
 
     } catch (error) {
@@ -61,20 +63,19 @@ app.post("/register", async (req, res) => {
 
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
- 
+
     if (!(email && password)) {
         res.status(400).send("field is missing");
     }
 
     const user = await User.findOne({ email })
         .then(() => {
-            console.log("user found");  
+            console.log("user found");
         })
         .catch(() => {
             res.status(400).send("Your are not register Yet...");
         });
-        
 
-})
+});
 
 module.exports = app
